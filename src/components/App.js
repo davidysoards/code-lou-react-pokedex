@@ -1,9 +1,7 @@
 import React, { Component } from "react";
 import Header from "./Header";
-
 export default class App extends Component {
   state = {
-    offset: 0,
     pokemon: {
       results: []
     }
@@ -13,27 +11,25 @@ export default class App extends Component {
     this.fetchPokemon();
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.offset !== this.state.offset) {
-      this.fetchPokemon();
-    }
-  }
-
-  fetchPokemon = () => {
-    fetch(
-      `https://pokeapi.co/api/v2/pokemon/?offset=${this.state.offset}&limit=12`
-    )
-      .then(res => res.json())
-      .then(json => {
-        console.log(json);
-        this.setState({ pokemon: json });
-      });
+  fetchPokemon = async (
+    url = "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=12"
+  ) => {
+    const res = await fetch(url);
+    const pokes = await res.json();
+    this.setState({ pokemon: pokes });
+    console.log(pokes);
   };
 
-  updateOffset = num => {
-    this.setState(prevState => {
-      return { offset: prevState.offset + num };
-    });
+  next = () => {
+    if (!this.state.pokemon.next) return;
+    this.fetchPokemon(this.state.pokemon.next);
+    // console.log("next");
+  };
+
+  previous = () => {
+    if (!this.state.pokemon.previous) return;
+    this.fetchPokemon(this.state.pokemon.previous);
+    // console.log("previous");
   };
 
   render() {
@@ -49,18 +45,10 @@ export default class App extends Component {
               </li>
             ))}
           </ul>
-          <button
-            id="previous"
-            className="btn"
-            onClick={() => this.updateOffset(-12)}
-          >
+          <button id="previous" className="btn" onClick={this.previous}>
             Previous
           </button>
-          <button
-            id="next"
-            className="btn"
-            onClick={() => this.updateOffset(12)}
-          >
+          <button id="next" className="btn" onClick={this.next}>
             Next
           </button>
         </main>
